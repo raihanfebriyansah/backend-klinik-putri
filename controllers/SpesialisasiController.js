@@ -23,26 +23,25 @@ class SpesialisasiController {
 
   static async createSpesialisasi(req, res) {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
+      let fotoUrl;
+
+      if (req.file) {
+        const fileBuffer = req.file.buffer;
+        const fileName = `${Date.now()}-${req.file.originalname}`;
+        const { data, error } = await supabase.storage
+          .from(process.env.SUPABASE_BUCKET)
+          .upload(fileName, fileBuffer);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+        fotoUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/uploads/${fileName}`;
+        req.body.foto = fotoUrl;
       }
-
-      const fileBuffer = req.file.buffer;
-      const fileName = `${Date.now()}-${req.file.originalname}`;
-      const { data, error } = await supabase.storage
-        .from(process.env.SUPABASE_BUCKET)
-        .upload(fileName, fileBuffer);
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      const fotoUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/uploads/${fileName}`;
-      req.body.foto = fotoUrl;
       const spesialisasi = await SpesialisasiRepository.createSpesialisasi(req.body);
       const result = {
         ...spesialisasi.toJSON(),
-        fotoUrl: fotoUrl,
+        ...(fotoUrl && { fotoUrl })
       };
       res.status(201).json(result);
     } catch (error) {
