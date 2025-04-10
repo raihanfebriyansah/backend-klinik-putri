@@ -1,16 +1,11 @@
 const SpesialisasiRepository = require('../repositories/SpesialisasiRepository');
 const { getFileUrl } = require('../utils/fileUtils');
+const supabase = require('../utils/supabaseClient');
 
 class SpesialisasiController {
   static async getAll(req, res) {
     try {
       const spesialisasi = await SpesialisasiRepository.getAll(req, res);
-
-      spesialisasi.data = spesialisasi.data.map(item => ({
-        ...item.toJSON(),
-        fotoUrl: getFileUrl(item.foto, req, 'spesialisasi')
-      }));
-
       res.json(spesialisasi);
     } catch (error) {
       res.status(500).send(error.message);
@@ -20,15 +15,7 @@ class SpesialisasiController {
   static async getSpesialisasiById(req, res) {
     try {
       const spesialisasi = await SpesialisasiRepository.getSpesialisasiById(req.params.id);
-      if (spesialisasi) {
-        const result = {
-          ...spesialisasi.toJSON(),
-          fotoUrl: getFileUrl(spesialisasi.foto, req, 'spesialisasi')
-        };
-        res.json(result);
-      } else {
-        res.status(404).json({ message: 'Spesialisasi not found' });
-      }
+      res.json(spesialisasi);
     } catch (error) {
       res.status(500).send(error.message);
     }
@@ -36,13 +23,26 @@ class SpesialisasiController {
 
   static async createSpesialisasi(req, res) {
     try {
-      if (req.file) {
-        req.body.foto = req.file.filename;
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
       }
+
+      const fileBuffer = req.file.buffer;
+      const fileName = `${Date.now()}-${req.file.originalname}`;
+      const { data, error } = await supabase.storage
+        .from(process.env.SUPABASE_BUCKET)
+        .upload(fileName, fileBuffer);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const fotoUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/uploads/${fileName}`;
+      req.body.foto = fotoUrl;
       const spesialisasi = await SpesialisasiRepository.createSpesialisasi(req.body);
       const result = {
         ...spesialisasi.toJSON(),
-        fotoUrl: getFileUrl(spesialisasi.foto, req, 'spesialisasi')
+        fotoUrl: fotoUrl,
       };
       res.status(201).json(result);
     } catch (error) {
@@ -55,12 +55,24 @@ class SpesialisasiController {
       if (!req.file) {
         return res.status(400).json({ message: 'No file uploaded' });
       }
+      const fileBuffer = req.file.buffer;
+      const fileName = `${Date.now()}-${req.file.originalname}`;
+      const { data, error } = await supabase.storage
+        .from(process.env.SUPABASE_BUCKET)
+        .upload(fileName, fileBuffer);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const fotoUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/uploads/${fileName}`;
+      req.body.foto = fotoUrl;
       const updated = await SpesialisasiRepository.updateSpesialisasi(req.params.id, {
-        foto: req.file.filename,
+        foto: fotoUrl,
       });
       const result = {
         ...updated.toJSON(),
-        fotoUrl: getFileUrl(updated.foto, req, 'spesialisasi')
+        fotoUrl: fotoUrl
       };
       res.json(result);
     } catch (error) {
@@ -70,14 +82,26 @@ class SpesialisasiController {
 
   static async updateSpesialisasi(req, res) {
     try {
-      console.log(req.file)
+      let fotoUrl;
+
       if (req.file) {
-        req.body.foto = req.file.filename;
+        const fileBuffer = req.file.buffer;
+        const fileName = `${Date.now()}-${req.file.originalname}`;
+        const { data, error } = await supabase.storage
+          .from(process.env.SUPABASE_BUCKET)
+          .upload(fileName, fileBuffer);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+        fotoUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/uploads/${fileName}`;
+        req.body.foto = fotoUrl;
       }
+
       const updated = await SpesialisasiRepository.updateSpesialisasi(req.params.id, req.body);
       const result = {
         ...updated.toJSON(),
-        fotoUrl: getFileUrl(updated.foto, req, 'spesialisasi')
+        ...(fotoUrl && { fotoUrl })
       };
       res.json(result);
     } catch (error) {

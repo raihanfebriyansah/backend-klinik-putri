@@ -12,7 +12,10 @@ const Doctor = sequelize.define('Doctor', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  foto: DataTypes.STRING,
+  foto: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   aktif: DataTypes.BOOLEAN,
   spesialisasiId: {
     type: DataTypes.INTEGER,

@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
     cb(null, baseName);
   }
 });
-const upload = multer({ storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
 router.use(authenticateToken);
@@ -26,6 +26,12 @@ router.use(authenticateToken);
 
 router.get('/list', AdminController.getAllAdmin);
 router.post('/create', AdminController.createAdmin);
-router.post('/update/:id', upload.single('foto'), AdminController.updateAdmin);
+router.post('/update/:id', upload.single('foto'), (req, res, next) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    return res.status(400).send('Invalid ID provided.');
+  }
+  next();
+}, AdminController.updateAdmin);
 
 module.exports = router;

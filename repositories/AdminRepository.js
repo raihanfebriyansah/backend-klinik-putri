@@ -27,12 +27,18 @@ class AdminRepository {
   }
 
   static async updateAdmin(id, userData) {
+    if (!id || isNaN(id)) {
+      throw new Error('Invalid ID provided for updating admin.');
+    }
     const user = await Admin.findByPk(id);
     if (!user) throw new Error('Admin not found');
     return await user.update(userData);
   }
 
   static async deleteAdmin(id) {
+    if (!id || isNaN(id)) {
+      throw new Error('Invalid ID provided for deleting admin.');
+    }
     const user = await Admin.findByPk(id);
     if (!user) throw new Error('User not found');
     return await user.destroy();

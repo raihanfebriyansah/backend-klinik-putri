@@ -1,5 +1,6 @@
 const PatientRepository = require('../repositories/PatientRepository');
 const { getFileUrl } = require('../utils/fileUtils');
+const supabase = require('../utils/supabaseClient');
 
 class PatientController {
   static async getAll(req, res) {
@@ -33,14 +34,24 @@ class PatientController {
       if (!req.file) {
         return res.status(400).json({ message: 'No file uploaded' });
       }
-      const updated = await PatientRepository.updatePatient(req.params.id, {
-        foto: req.file.filename,
-      });
-      const result = {
+
+      const fileBuffer = req.file.buffer;
+      const fileName = `${Date.now()}-${req.file.originalname}`;
+      const { data, error } = await supabase.storage
+        .from(process.env.SUPABASE_BUCKET)
+        .upload(fileName, fileBuffer);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const fotoUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/uploads/${fileName}`;
+      const updated = await PatientRepository.updatePatient(req.params.id, { foto: fotoUrl });
+
+      res.json({
         ...updated.toJSON(),
-        fotoUrl: getFileUrl(updated.foto, req, 'patient')
-      };
-      res.json(result);
+        fotoUrl,
+      });
     } catch (error) {
       res.status(500).send(error.message);
     }

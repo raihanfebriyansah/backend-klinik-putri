@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
     cb(null, baseName);
   }
 });
-const upload = multer({ storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
 router.use(authenticateToken);

@@ -22,7 +22,7 @@ const Admin = sequelize.define('Admin', {
   },
   foto: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   aktif: {
     type: DataTypes.BOOLEAN,
