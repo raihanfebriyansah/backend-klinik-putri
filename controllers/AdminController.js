@@ -27,6 +27,21 @@ class AdminController {
       res.status(400).send(error.message);
     }
   }
+
+  static async updateAdmin(req, res) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+      const admin = await AdminRepository.updateAdmin(req.params.id, {
+        foto: req.file.filename,
+        ...req.body,
+      });
+      res.json(admin);
+    } catch (error) {
+      res.status(400).send(error.message);
+    }
+  }
 }
 
 module.exports = AdminController;

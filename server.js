@@ -20,7 +20,6 @@ const path = require('path');
 
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 4000;
 
 // Middleware
 app.use(
@@ -64,7 +63,7 @@ if (process.env.VERCEL) {
   module.exports = app;
 } else {
   // Untuk development lokal
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     sequelize.authenticate().then(() => console.log('Database connected'));

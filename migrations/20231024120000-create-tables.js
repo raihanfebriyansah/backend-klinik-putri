@@ -193,6 +193,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('DT_ADMIN');
     await queryInterface.dropTable('DT_JADWAL_DOKTER_SPESIALISASI');
     await queryInterface.dropTable('DT_JADWAL_DOKTER_UMUM');
     await queryInterface.dropTable('DT_DOKTER');
@@ -201,6 +202,5 @@ module.exports = {
     await queryInterface.dropTable('DT_LAYANAN_SPESIALISASI');
     await queryInterface.dropTable('DT_PASIEN');
     await queryInterface.dropTable('DT_FOOTER');
-    // await queryInterface.dropTable('DT_ADMIN');
   }
 };
