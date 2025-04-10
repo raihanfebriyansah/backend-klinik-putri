@@ -1,4 +1,5 @@
 const AdminRepository = require('../repositories/AdminRepository');
+const bcrypt = require('bcryptjs');
 
 class AdminController {
   static async getAllAdmin(req, res) {
@@ -30,13 +31,10 @@ class AdminController {
 
   static async updateAdmin(req, res) {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
-      }
-      const admin = await AdminRepository.updateAdmin(req.params.id, {
-        foto: req.file.filename,
-        ...req.body,
-      });
+      const hashedPassword = await bcrypt.hash(req.body.password, 10);
+      req.body.password = hashedPassword;
+
+      const admin = await AdminRepository.updateAdmin(req.params.id, req.body);
       res.json(admin);
     } catch (error) {
       res.status(400).send(error.message);
